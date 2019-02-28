@@ -7,7 +7,6 @@ try{
       $data = array();
       $data['name'] = $_POST['name'];
       $data['email'] = $_POST['email']; 
-      $data['worked_on_by'] = $_SESSION['name']; 
       $data['department'] = $_POST['department'];
       $data['userType'] = $_POST['userType'];
       $data ['password']  = password_hash($_POST["password"],PASSWORD_BCRYPT, array('cost'=>12 ));

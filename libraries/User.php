@@ -2,7 +2,7 @@
 <?php
 class User {
   private $db ;
-  private const SUBMITTED_BY_RECEPTIONIST = 0;
+  private const SUBMITTED_BY_RECEPTIONIST = "Uncompleted";
 
   private function setUserData($row){
     $_SESSION['loggedIn'] = true;
@@ -11,6 +11,7 @@ class User {
     $_SESSION['department'] = $row->department;
     $_SESSION['userType'] = $row->userType;
   }
+
   public function __construct(){
     $this->db = new Database();
   }
@@ -68,7 +69,7 @@ class User {
   }
 
   public function addTask($data){
-    $this->db->query("INSERT INTO tasks(owner, copies, worked_on_by,description, files, status, assignTo, task_identifier) VALUES(:owner, :copies, :worked_on_by, :description, :files, :status, :assignTo, :task_identifier)");
+    $this->db->query("INSERT INTO tasks(owner, copies, worked_on_by,description, files, status, assignTo, task_identifier, cost) VALUES(:owner, :copies, :worked_on_by, :description, :files, :status, :assignTo, :task_identifier, :cost)");
     $this->db->bind(":owner", $data['owner']);   
     $this->db->bind(":copies", $data['copies']); 
     $this->db->bind(":worked_on_by", $data['worked_on_by']); 
@@ -77,11 +78,12 @@ class User {
     $this->db->bind(":status", User::SUBMITTED_BY_RECEPTIONIST);
     $this->db->bind(":assignTo", $data['assignTo']);
     $this->db->bind(":task_identifier", $data['task_identifier']);
+    $this->db->bind(":cost", $data['cost']);
     return $this->db->execute();
   }
 
   public function getTasks(){
-    $this->db->query("SELECT * FROM tasks");
+    $this->db->query("SELECT * FROM tasks ORDER BY submitted_date DESC");
     return $this->db->resultSet();
   }
 
@@ -94,7 +96,17 @@ class User {
       echo '<div class="alert alert-danger">'.get_class($e).' on line '.$e->getLine().' of '.$e->getFile().': '.$e->getMessage().'</div>';
     }
   }
-
+  public function getUncompletedTaskCount(){
+    try{
+      $this->db->query('SELECT * FROM tasks WHERE status = :status');
+      $this->db->bind(':status', User::SUBMITTED_BY_RECEPTIONIST);
+      $this->db->resultset();
+      return $this->db->rowCount();
+    }catch(Throwable $e){
+      echo '<div class="alert alert-danger">'.get_class($e).' on line '.$e->getLine().' of '.$e->getFile().': '.$e->getMessage().'</div>';
+    }
+  }
+     
   public function updateTask($data)
   {
     $this->db-> query("UPDATE tasks SET 
@@ -105,7 +117,7 @@ class User {
         files = :files,
         status = :status,
         assignTo = :assignTo,
-        task_identifier= :task_identifier
+        cost = :cost
        WHERE id = :id");
     $this->db->bind(":owner", $data['owner']);   
     $this->db->bind(":copies", $data['copies']); 
@@ -114,17 +126,48 @@ class User {
     $this->db->bind(":files", $data['files']);
     $this->db->bind(":status", User::SUBMITTED_BY_RECEPTIONIST);
     $this->db->bind(":assignTo", $data['assignTo']);
-    $this->db->bind(":task_identifier", $data['task_identifier']);
+    $this->db->bind(":cost", $data['cost']);
     $this->db->bind(":id",$data['id']);
-    if($this->db->execute()){
-      return true;
-    }else{
-      return false;
-    }
+    return $this->db->execute();
+  }
+
+
+  public function updateUser($data)
+  {
+    $this->db-> query("UPDATE users SET 
+        name=:name, 
+        email =:email, 
+        department=:department, 
+        userType = :userType,
+        password = :password
+       WHERE id = :id");
+    $this->db->bind(":name", $data['name']);  
+    $this->db->bind(":email", $data['email']);  
+    $this->db->bind(":password", $data['password']); 
+    $this->db->bind(":department", $data['department']); 
+    $this->db->bind(":userType", $data['userType']); 
+    $this->db->bind(":id",$data['id']);
+    return $this->db->execute();
   }
 
   public function deleteTask($id){
     $this->db->query("DELETE FROM tasks WHERE id=:id");
+    $this->db->bind(":id",$id);
+    return $this->db->execute();
+  }
+
+  public function deleteUser($id){
+    $this->db->query("DELETE FROM users WHERE id=:id");
+    $this->db->bind(":id",$id);
+    return $this->db->execute();
+  }
+  
+  public function updateStatus($id)
+  {
+    $this->db-> query("UPDATE tasks SET 
+        status = :status
+       WHERE id = :id");
+    $this->db->bind(":status", "Completed");
     $this->db->bind(":id",$id);
     return $this->db->execute();
   }

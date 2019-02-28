@@ -22,9 +22,10 @@ try{
       }
     }
     $data['owner'] = $_POST['owner'];
-    $data['worked_on_by'] = $_SESSION['name'] || "DADSF";
+    $data['worked_on_by'] = $_SESSION['name'];
     $data['description'] = $_POST['description']; 
     $data['copies'] = $_POST['copies'];
+    $data['cost'] = $_POST['cost'];
     $data["files"]  =  implode(SEPARATOR,$files);
     $data["assignTo"]  =  $_POST['department'];
     $data['task_identifier'] = time();

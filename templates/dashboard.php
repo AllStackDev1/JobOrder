@@ -30,7 +30,7 @@
            <?php if($isLoggedIn): ?>
             <li><a href="#">Welcome, <?php echo  $_SESSION['name'];?></a></li>
             <li><a href="logoutUser.php">Logout</a></li>
-           <!-- <li><a type="button" data-toggle="modal" data-target="#addPass">Change Password</a> -->
+           <!-- <li><a type="button" data-toggle="modal" data-target="#updatePass">Change Password</a> -->
           <?php endif;?>
           </ul>
         </div><!--/.nav-collapse -->
@@ -56,6 +56,7 @@
                     <li><a type="button" data-toggle="modal" data-target="#addUser">Add User</a>
                     <!-- <li><a type="button" data-toggle="modal" data-target="#addUserType">Add UserType</a> -->
                     <li><a type="button" data-toggle="modal" data-target="#addDepartment">Add Department</a>
+                    <li><a type="button" data-toggle="modal" data-target="#generateReport">Generate Report</a>
                   <?php endif?>
 
                   <?php if(getUserType() == RECEPTIONIST): ?>
@@ -80,20 +81,27 @@
               </div>
               <div class="panel-body">
               <?php if(getUserType() == ADMIN): ?>
-                <div class="col-md-6">
+                <div class="col-md-4">
+                  <a href="<?php echo BASE_URL ?>users.php">
                   <div class="well dash-box">
                     <h2><span class="glyphicon glyphicon-user" aria-hidden="true"></span></h2>
                     <h4> <?php echo sizeof($users);?> Users</h4>
                   </div>
+                  </a>
                 </div>
               <?php endif; ?> 
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <div class="well dash-box">
                     <h2><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> 
-                    <h4> <?php echo sizeof($tasks);?> Printing Tasks</h4>
+                    <h4> <?php echo $unCompletedTasks;?> Uncompleted Printing Tasks</h4>
                   </div>
                 </div>
-              </div>
+                <div class="col-md-4">
+                  <div class="well dash-box">
+                    <h2><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> 
+                    <h4> <?php echo sizeof($tasks) - $unCompletedTasks;?> Completed Printing Tasks</h4>
+                  </div>
+                </div>
               </div>
 
               <!-- Latest Users -->
@@ -109,10 +117,15 @@
                           <th>Client's Name</th>
                           <th>Task Identifier</th>
                           <th>Files</th>
+                          <?php if(getUserType() == ADMIN || getUserType() == RECEPTIONIST )  : ?>
+                            <th>Cost</th>
+                          <?php endif;?>
                           <th>Job Description</th>
                           <th>Number of Job Copies</th>
                           <th>Assigned To</th>
                           <th>Submitted Date</th>
+                          <th>Status</th>
+                          <th>Is Task Completed?</th>
                           <th></th>
                         </tr>
                       </thead>
@@ -136,28 +149,51 @@
                                   <?php echo $task->task_identifier ?>
                               </td>
                               <td><?php echo $filesData; ?></td>
-                              <td><?php echo $task->description ?></td>
-                              <td><?php echo $task->copies ?></td>
-                              <td><?php echo $task->assignTo ?></td>
-                              <td><?php echo dateFormat($task->submitted_date); ?></td>
+                              <?php if(getUserType() == ADMIN || getUserType() == RECEPTIONIST )  : ?>
+                                  <td><?php echo $task->cost; ?></td>
+                              <?php endif;?>
+                              <td>
+                                <?php echo $task->description ?>
+                              </td>
+                              <td>
+                                <?php echo $task->copies ?>
+                              </td>
+                              <td>
+                                <?php echo $task->assignTo ?>
+                              </td>
+                              <td>
+                                <?php echo dateFormat($task->submitted_date); ?>
+                              </td>
+                              <td>
+                                <?php echo $task->status ?>
+                              </td>
+                              <td>
+                                  <div class="form-group">
+                                    <select class="form-control" id="commandStatusUpdate" onChange="check(this);"> 
+                                      <option value = "No">No</option>  
+                                      <option value = "Yes">Yes</option>  
+                                    </select>
+                                  </div>
+                                  <input type="hidden" id="statusCode" value="<?php echo $task->id?>">
                               <td>
                                   <?php if(getUserType() == RECEPTIONIST): ?>
+                                      <?php if($task->status == "Uncompleted"): ?>
                                       <button 
-                                        id="uTask"
                                         type="button" 
-                                        class="btn btn-primary"
+                                        class="btn btn-primary updateTask"
                                         data-id ="<?php echo $task->id?>"
                                         data-owner ="<?php echo $task->owner?>"
                                         data-description ="<?php echo $task->description?>"
                                         data-copies ="<?php echo $task->copies?>"
                                         data-files ="<?php echo $task->files?>"
                                         data-assign ="<?php echo $task->assignTo?>"
+                                        data-cost = "<?php echo $task->cost ?>"
                                         data-toggle="modal" data-target="#updateTask"
                                         >Edit</button> <br/>
+                                      <?php endif;?>
                                       <button 
-                                        id ="delete"
                                         type="button" 
-                                        class="btn btn-danger"
+                                        class="btn btn-danger deleteTask"
                                         data-id ="<?php echo $task->id?>"
                                         data-toggle="modal" data-target="#deleteTask"
                                         data-files ="<?php echo $task->files?>"
@@ -257,7 +293,11 @@
           </div>
           <div class="form-group">
             <label>File(s)</label>
-            <input type="file" name="file_array[]"  multiple="multiple" required>
+            <input type="file" name="file_array[]"  multiple="multiple"  class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Cost</label>
+            <input type="currency" name="cost"  required class="form-control">
           </div>
           <div class="form-group">
             <label for="sel1">Assign To</label>
@@ -305,7 +345,7 @@
           <h4 class="modal-title" id="myModalLabel">Update</h4>
         </div>
         <div class="modal-body">
-        <form method="post" action="addTask.php"  enctype="multipart/form-data">
+        <form method="post" action="updateTask.php"  enctype="multipart/form-data">
           <div class="form-group">
             <label>Document Owner</label>
             <input  class="form-control" placeholder="Document Owner" id="owner" required name="owner" />
@@ -320,7 +360,11 @@
           </div>
           <div class="form-group">
             <label>File(s)</label>
-            <input type="file" name="file_array[]"  multiple="multiple" id ="files" required>
+            <input type="file" name="file_array[]"  multiple="multiple" id ="file_array" required class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Cost</label>
+            <input type="currency" name="cost"  id="cost"  required class="form-control">
           </div>
           <div class="form-group">
             <label for="sel1">Assign To</label>
@@ -331,8 +375,10 @@
               <?php endforeach;?>   
             </select>
           </div>
+          <input type="hidden" class="form-control" id="idForUpdateTask" required name="id">
+          <input type="hidden" class="form-control" required name="filesUploadededBefore" id="filesUploadededBefore" >
            <button type="button" class="close btn btn-danger" data-dismiss="modal" aria-label="Close">Close</button>
-          <button type="submit" class="btn btn-primary" name="addTask">Save</button>
+          <button type="submit" class="btn btn-primary" name="updateTask">Save Changes</button>
           </form>
            <ul class="list-group" id="fileList"></ul>
         </div>
@@ -340,7 +386,7 @@
     </div>
   </div>
 
-  <div class="modal fade" id="addPass" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal fade" id="updatePass" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -381,8 +427,8 @@
         <form method="post" action="deleteTask.php">
           <div class="form-group">
             <label>Are you sure you want to delete this</label>
-            <input type="text" class="form-control" required name="id" id="id" >
-            <input type="text" class="form-control" required name="files" id="files" >
+            <input type="hidden" class="form-control" required name="id" id="id" >
+            <input type="hidden" class="form-control" required name="filesToBeDeleted" id="filesToBeDeleted" >
           </div>
           <button type="button" class="btn btn-primary" data-dismiss="modal">No</button>
           <button type="submit" class="btn btn-danger" name="deleteTask">Yes</button>
@@ -391,8 +437,34 @@
       </div>
     </div>
   </div>
+
+  <div class="modal fade" id="generateReport" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel">Generate Report</i></h4>
+        </div>
+        <div class="modal-body">
+        <form method="post" action="generateReport.php">
+          <div class="form-group">
+            <label for="sel1">Choose Report Type</label>
+            <select class="form-control" name="generateReport" required id="generateReport">
+              <option value = "Daily">Daily</option>  
+              <option value = "Weekly">Weekly</option>  
+              <option value = "Monthly">Monthly</option>  
+              <option value = "Yearly">Yearly</option>  
+            </select>
+          </div>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger" name="generateReport">Generate</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
   
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="<?php echo BASE_URL?>templates/js/jquery.min.js"></script>
   <script src="<?php echo BASE_URL?>templates/js/bootstrap.min.js"></script>
  <script src=" <?php echo BASE_URL?>templates/js/bootstrap-select.min.js"></script>
  <script src=" <?php echo BASE_URL?>templates/js/jquery.dataTables.min.js"></script>
@@ -411,20 +483,66 @@ $(document).ready(function() {
 		// 		$('#body').load('dashboard.php')
 		// 	}, 3000);
 
-    $('#uTask').click(function () {
+    $('.updateTask').click(function () {
             $('#owner').val($(this).data("owner"));
             $('#description').val($(this).data("description"));
             $('#copies').val($(this).data("copies"));
-            // $('#files').val($(this).data("files"));
             $('#assign').val($(this).data("assign")).prop('selected', true)
-            $('#editStockingOnboarding').attr("action", $(this).data("href"));
-        });
-  });
+            $('#idForUpdateTask').val($(this).data("id"));
+            $('#filesUploadededBefore').val($(this).data("files"));
+            $('#cost').val($(this).data("cost"));
+            // let files = $(this).data('files').split(",");
+            // console.log(files)
+            // for(let fileName of files){
+            //   let file = new File([""], fileName);
+            //   $
+            // }
+            // // / $('#files').val($(this).data("files"));
 
-  $('#delete').click(function () {
-    $('#id').val($(this).data("id"));
-    $('#files').val($(this).data("files"));
-  });
+        });
+
+    $('.deleteTask').click(function () {
+      $('#id').val($(this).data("id"));
+      $('#filesToBeDeleted').val($(this).data("files"));
+    });
+
+    const currencyInput = document.querySelector('input[type="currency"]');
+    const currency = 'GHS';
+    currencyInput.addEventListener('focus', onFocus);
+    currencyInput.addEventListener('blur', onBlur);
+    function localStringToNumber( s ){
+        return Number(String(s).replace(/[^0-9.-]+/g,""));
+    }
+
+    function onFocus(e){
+      const value = e.target.value;
+      e.target.value = value ? localStringToNumber(value) : '';
+    }
+
+    function onBlur(e){
+      const value = e.target.value;
+      const options = {
+          maximumFractionDigits : 2,
+          currency              : currency,
+          style                 : "currency",
+          currencyDisplay       : "symbol"
+      }
+      e.target.value = value 
+        ? localStringToNumber(value).toLocaleString(undefined, options)
+        : ''
+    }
+});
+
+function check(elem) {
+  if(elem.value === "Yes"){
+    if(confirm("Are you sure your done printing all the files for this task?")){
+      window.location.href = `/JobOrder/updateStatus.php?status=${document.getElementById("statusCode").value}`
+    }
+  }
+  else{
+    alert("Try to finish them early. All the best");
+  }
+}
 
 </script>
   </body>

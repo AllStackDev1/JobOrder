@@ -9,8 +9,8 @@ try{
 		$template->users =  $user->getUsers();
 		$template->departments = $user->getDepartments();
 		$template->numberOfTasks = sizeof($tasks);
+		$template->unCompletedTasks = $user->getUncompletedTaskCount();
 		$template->tasks = $tasks;
-		#
 		echo $template;
 	}
 	else{
