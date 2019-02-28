@@ -9,7 +9,7 @@ define("TAGLINE", "JOB ORDER");
 define('BASE_URL','http://'.$_SERVER['SERVER_NAME'].'/JobOrder/');
 
 
-define("ARRAY_SEPARATOR", ",");
+define("SEPARATOR", ",");
 
 //users 
 define("RECEPTIONIST", "Receptionist");

@@ -2,13 +2,12 @@
 require("core/init.php");
 try{
 	$user = new User();
-	$task = new Task(new Database());
 	if($user->isLoggedIn()){
 		$template = new Template("templates/dashboard.php");
-		$users = $user->getUsers();
-		$tasks = $task-> getTasks();
-		$template->numberOfUsers =  sizeof($users);
-		$template->userTypes = $user->getUserTypes();
+		$tasks = $user-> getTasks();
+		$template->isLoggedIn = $user->isLoggedIn();
+		$template->users =  $user->getUsers();
+		$template->departments = $user->getDepartments();
 		$template->numberOfTasks = sizeof($tasks);
 		$template->tasks = $tasks;
 		#

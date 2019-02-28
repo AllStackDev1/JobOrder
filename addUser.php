@@ -7,9 +7,11 @@ try{
       $data = array();
       $data['name'] = $_POST['name'];
       $data['email'] = $_POST['email']; 
-      $data['userType'] = $_POST['usertype'];
-      $data ['password']  = password_hash($_POST["password"],PASSWORD_BCRYPT, array('cost'=>11 ));
-      $isRequired = array("fullname", "email", "password", "confirm_password", "usertype");
+      $data['worked_on_by'] = $_SESSION['name']; 
+      $data['department'] = $_POST['department'];
+      $data['userType'] = $_POST['userType'];
+      $data ['password']  = password_hash($_POST["password"],PASSWORD_BCRYPT, array('cost'=>12 ));
+      $isRequired = array("fullname", "email", "password", "confirm_password", "department" );
       if(passwordMatch($_POST['confirm_password'], $_POST["password"])){
         if(isRequired($isRequired)){
             if($user->addUser($data)){
