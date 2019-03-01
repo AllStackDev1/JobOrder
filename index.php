@@ -6,8 +6,8 @@ if($user->isLoggedIn()){
   redirect("dashboard.php", "Successfully Logged in", "success");
 }
 if(isset($_POST['do_login'])){
-  $email = $_POST['email'];
-  $password = $_POST['password'];
+  $email = filter_input(INPUT_POST,"email",FILTER_SANITIZE_EMAIL);
+  $password = filter_input(INPUT_POST,"password",FILTER_SANITIZE_STRING);
   if($user->login($email, $password))
   {
     redirect("dashboard.php", "Successfully Logged in", "success");
