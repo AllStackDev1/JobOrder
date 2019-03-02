@@ -5,12 +5,12 @@ try{
   if($user->isLoggedIn()){
     if(isset($_POST['updateUser'])){
         $data = array();
-      $data['name'] = $_POST['name'];
-      $data['email'] = $_POST['email']; 
+      $data['name'] = filter_input(INPUT_POST,"name",FILTER_SANITIZE_STRING);
+      $data['email'] = filter_input(INPUT_POST,"email",FILTER_SANITIZE_EMAIL); 
       $data['worked_on_by'] = $_SESSION['name']; 
-      $data['department'] = $_POST['department'];
-      $data['userType'] = $_POST['userType'];
-      $data['id'] = $_POST['userId'];
+      $data['department'] = filter_input(INPUT_POST,"department",FILTER_SANITIZE_STRING);
+      $data['userType'] = filter_input(INPUT_POST,"userType",FILTER_SANITIZE_STRING);
+      $data['id'] = filter_input(INPUT_POST,"userId",FILTER_SANITIZE_STRING);
       $data ['password']  = password_hash($_POST["password"],PASSWORD_BCRYPT, array('cost'=>12 ));
       if(passwordMatch($_POST['confirm_password'], $_POST["password"])){
         if($user->updateUser($data)){

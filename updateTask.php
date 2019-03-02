@@ -31,13 +31,13 @@ try{
         }
       }
     }
-    $data['owner'] = $_POST['owner'];
+    $data['owner'] = filter_input(INPUT_POST,"owner",FILTER_SANITIZE_STRING);
     $data['id'] = $_POST['id'];
     $data['worked_on_by'] = $_SESSION['name'];
-    $data['description'] = $_POST['description']; 
-    $data['copies'] = $_POST['copies'];
+    $data['description'] = filter_input(INPUT_POST,"description",FILTER_SANITIZE_STRING); 
+    $data['copies'] = filter_input(INPUT_POST,"copies",FILTER_SANITIZE_STRING);
     $data["files"]  =  implode(SEPARATOR,$files);
-    $data["assignTo"]  =  $_POST['department'];
+    $data["assignTo"]  = filter_input(INPUT_POST,"department",FILTER_SANITIZE_STRING);
     $data['cost'] = $_POST['cost'];
     $isRequired = array("description","copies","owner");
     if(isRequired($isRequired)){

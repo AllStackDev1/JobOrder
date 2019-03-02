@@ -5,10 +5,10 @@ try{
   if($user->isLoggedIn()){
     if(isset($_POST['addUser'])){
       $data = array();
-      $data['name'] = $_POST['name'];
-      $data['email'] = $_POST['email']; 
-      $data['department'] = $_POST['department'];
-      $data['userType'] = $_POST['userType'];
+      $data['name'] = filter_input(INPUT_POST,"name",FILTER_SANITIZE_STRING);
+      $data['email'] = filter_input(INPUT_POST,"name",FILTER_SANITIZE_EMAIL); 
+      $data['department'] = filter_input(INPUT_POST,"department",FILTER_SANITIZE_STRING);
+      $data['userType'] = filter_input(INPUT_POST,"userType",FILTER_SANITIZE_STRING);
       $data ['password']  = password_hash($_POST["password"],PASSWORD_BCRYPT, array('cost'=>12 ));
       $isRequired = array("fullname", "email", "password", "confirm_password", "department" );
       if(passwordMatch($_POST['confirm_password'], $_POST["password"])){
